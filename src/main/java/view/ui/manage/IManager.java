@@ -41,6 +41,8 @@ import view.ui.goods.UIProduction;
 import view.ui.goods.UIRecipes;
 import view.ui.goods.UIValues;
 
+import static com.codedisaster.steamworks.SteamRemoteStorage.WorkshopFileType.Game;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///#!# Updates the front facing UI to add 5 buttons for Expenses, Production, Recipes, Values, and Maintenance
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,24 +284,62 @@ public final class IManager {
                 GFORMAT.i(text, STATS.POP().pop(HTYPES.TOURIST()));
             }
         });
-
+//        bAdd(s, i++, VIEW.UI().tech, UI.icons().s.vial, new GStat() {
+//
+//            @Override
+//            public void update(GText text) {
+//                int am = Integer.MAX_VALUE;
+//                int bm = Integer.MIN_VALUE; //IDK why it's not just 0, it'll be overwritten anyway
+//                for (TechCurr c : GAME.player().tech.currs()) {
+//                    am = Math.min(am, c.available());
+//                    bm = Math.max(bm, c.available());
+//                }
+//                if (am < 0){
+//                    GFORMAT.i(text, am);
+//                }
+//                else{
+//                    GFORMAT.i(text, bm);
+//                }
+//
+//            }
+//        });
         bAdd(s, i++, VIEW.UI().tech, UI.icons().s.vial, new GStat() {
 
             @Override
             public void update(GText text) {
-                int am = Integer.MAX_VALUE;
-                int bm = Integer.MIN_VALUE; //IDK why it's not just 0, it'll be overwritten anyway
-                for (TechCurr c : GAME.player().tech.currs()) {
-                    am = Math.min(am, c.available());
-                    bm = Math.max(bm, c.available());
-                }
-                if (am < 0){
-                    GFORMAT.i(text, am);
-                }
-                else{
-                    GFORMAT.i(text, bm);
-                }
+                int am;
+                int index=0;
+                 for (TechCurr c : GAME.player().tech.currs()) {
+                     index+=1;
+                     am = c.available();
+                     if (index ==1){GFORMAT.i(text, am);}
+                 }
+            }
+        });
+        bAdd(s, i++, VIEW.UI().tech, UI.icons().s.book, new GStat() {
 
+            @Override
+            public void update(GText text) {
+                int am;
+                int index=0;
+                for (TechCurr c : GAME.player().tech.currs()) {
+                    index+=1;
+                    am = c.available();
+                    if (index ==2){GFORMAT.i(text, am);}
+                }
+            }
+        });
+        bAdd(s, i++, VIEW.UI().tech, UI.icons().s.custom4, new GStat() {
+
+            @Override
+            public void update(GText text) {
+                int am;
+                int index=0;
+                for (TechCurr c : GAME.player().tech.currs()) {
+                    index+=1;
+                    am = c.available();
+                    if (index ==3){GFORMAT.i(text, am);}
+                }
             }
         });
 

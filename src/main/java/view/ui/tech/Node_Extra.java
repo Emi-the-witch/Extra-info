@@ -34,33 +34,67 @@ public class Node_Extra{
                 // Calculate the total costs and benefits for simplification
                 int j = 0;
                 worker_cost   = 0;
-
+                double material_cost = 0; // non-worker cost, total
                 if (tech.costs == null){return;}
                 if (FACTIONS.player() == null){return;}
                 if (FACTIONS.player().tech == null){return;}
 
+                boolean error = false;
                 for (TechCost c : tech.costs) {
                         PTech t = FACTIONS.player().tech();
                         int cost = t.costLevelNext(c.amount, tech);
-                        worker_cost += cost;
-                        // For each tech currency: Tech cost / knowledge per worker
-                        j += 1;
+
+                        // No workers / knowledge per workers for the tech *and* cost >0, this can't be calculated
+                        if (know_worker[c.cu.index] == 0){
+                                error = true;
+                                continue;
+                        }
+
+                        // Otherwise, Tech cost / knowledge per worker = number of workers needed
+                        worker_cost += cost / know_worker[c.cu.index];
+
+                        // Total costs per worker for each currency type
+                        material_cost += cost_total[c.cu.index];
                 }
-                worker_cost = (sum_d(know_worker) != 0) ? worker_cost/sum_d(know_worker) : 0;
 
 
-                // Calculate the benefit of a technology based on the "benefit"
-                int i = 0;
-                if (tech.Tech_CostBenefit.benefits != 0 ) {
+
+
+
+                ////////////// Calculate cost-benefit analysis #
+                if (tech.Tech_CostBenefit.benefits != 0 && !error) {
                         b.NL();
                         b.add(GFORMAT.f(b.text(), tech.Tech_CostBenefit.benefits / worker_cost , 3));
                         b.tab(2);
                         b.add(GFORMAT.text(b.text(), "Below '1' means you are spending more labor in tech buildings than you'd gain from having the tech."));
+                        b.sep();
                 }
-                i += 1;
+
+                //////////// Costs display
+                b.NL();
+                if (!error) {
+                        b.add(GFORMAT.f(b.text(), worker_cost, 1));
+                        b.tab(2);
+                        b.add(GFORMAT.text(b.text(), "Cost in workers"));
+                }else{
+                        b.add(GFORMAT.text(b.text(), "Unable to calculate the cost in workers"));
+                }
+
+
+                /////////// Benefits display
+                b.NL();
+                if (tech.Tech_CostBenefit.benefits != 0) {
+                        b.add(GFORMAT.f(b.text(), tech.Tech_CostBenefit.benefits, 1));
+                        b.tab(2);
+                        b.add(GFORMAT.text(b.text(), "Benefit in workers"));
+                }else{
+                        b.add(GFORMAT.text(b.text(), "Unable to calculate the benefits in workers"));
+                }
+
+
                 if (!KEYS.MAIN().UNDO.isPressed()) {
                         b.sep();
-                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Press Undo button for more info"));
+                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Press Undo button (shift) for more info or to refresh the calculations"));
                         b.sep();
                 }
                 //////////////////////////////////////////////////////////////////////////////////////
@@ -68,15 +102,18 @@ public class Node_Extra{
                 //////////////////////////////////////////////////////////////////////////////////////
 
                 if (KEYS.MAIN().UNDO.isPressed()) {
-                        b.sep();
-                        b.add(GFORMAT.f(b.text(), worker_cost, 1));
-                        b.tab(2);
-                        b.add(GFORMAT.text(b.text(), "Tech worker cost"));
-
+                        /////////
                         b.NL();
-                        b.add(GFORMAT.f(b.text(), sum_d(cost_total), 1));
+                        b.add(GFORMAT.f(b.text(), material_cost, 1));
                         b.tab(2);
-                        b.add(GFORMAT.text(b.text(), "Tech upkeep cost"));
+                        b.add(GFORMAT.text(b.text(), "Tech upkeep cost per tech worker"));
+
+
+                        // sum production workers divided by the sum of workplaces maintenance + tools
+//                        b.NL();
+//                        b.add(GFORMAT.f(b.text(), material_cost_production, 1));
+//                        b.tab(2);
+//                        b.add(GFORMAT.text(b.text(), "Production upkeep cost per production worker"));
                 }
 
         }
@@ -91,23 +128,16 @@ public class Node_Extra{
                 tech.Tech_CostBenefit.update(tech);
 
 
-                if ( tech.Tech_CostBenefit.benefits >0 ){
-                        b.NL();
-                        b.add(GFORMAT.f(b.text(), tech.Tech_CostBenefit.benefits, 1));
-                        b.tab(2);
-                        b.add(GFORMAT.text(b.text(), "Production worker Benefit"));
+                // lol nothing
 
-                        b.NL();
-                        b.add(GFORMAT.f(b.text(), tech.Tech_CostBenefit.benefit_tot, 1));
-                        b.tab(2);
-                        b.add(GFORMAT.text(b.text(), "Cost of production upkeep per worker"));
-                }
                 //////////////////////////////////////////////////////////////////////////////////////
                 /////////      If pressing shift       ///////////////////////////////////////////////
                 //////////////////////////////////////////////////////////////////////////////////////
                 if (KEYS.MAIN().UNDO.isPressed()) {
-                        int i = 0;
+
                         for (PTech.TechCurr tech_value : FACTIONS.player().tech().currs()) {
+                                int i = tech_value.cu.index;
+
                                 b.NL();
                                 b.add(GFORMAT.text(b.text(), " "));
                                 b.NL();
@@ -127,7 +157,7 @@ public class Node_Extra{
                                 b.NL();
                                 b.add(GFORMAT.f(b.text(), know_worker[i], 1));
                                 b.tab(2);
-                                b.add(GFORMAT.text(b.text(), "Knowledge per worker"));
+                                b.add(GFORMAT.text(b.text(), "Tech per worker"));
 
                                 b.NL();
                                 b.add(GFORMAT.f(b.text(), cost_total[i], 1));
@@ -152,7 +182,6 @@ public class Node_Extra{
                                 b.NL();
                                 b.NL();
 
-                                i += 1;
                         }
 
                 }
@@ -186,58 +215,58 @@ public class Node_Extra{
                                 furniture_output = tech_divisor_presentation(tech, "furniture", costs, bb, b);
                         }
 
-                        if (KEYS.MAIN().UNDO.isPressed()) {
-                                if (!(tech.Tech_CostBenefit.benefit_maint == 0 && tech.Tech_CostBenefit.benefit_tools == 0 && tech.Tech_CostBenefit.benefit_tot == 0)) {
-                                        b.sep();
-                                }
-
-                                if (tech.Tech_CostBenefit.benefit_maint != 0) {
-                                        b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(tech.Tech_CostBenefit.benefit_maint * 10) / 10, 1).color(GCOLOR.T().IBAD));
-                                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Maintenance costs per boosted industry worker"));
-                                        b.NL();
-                                }
-                                if (tech.Tech_CostBenefit.benefit_tools != 0) {
-                                        b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(tech.Tech_CostBenefit.benefit_tools * 10) / 10, 1).color(GCOLOR.T().IBAD));
-                                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Tool costs per boosted industry worker"));
-                                        b.NL();
-                                }
-                                if (tech.Tech_CostBenefit.benefit_tot != 0) {
-                                        b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(tech.Tech_CostBenefit.benefit_tot * 10) / 10, 1).color(GCOLOR.T().IBAD));
-                                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Average boosted industry workers costs"));
-                                        b.NL();
-                                }
-                                if (!(tech.Tech_CostBenefit.benefit_maint == 0 && tech.Tech_CostBenefit.benefit_tools == 0 && tech.Tech_CostBenefit.benefit_tot == 0)) {
-                                        b.NL();
-                                }
-                        }
+//                        if (KEYS.MAIN().UNDO.isPressed()) {
+//                                if (!(tech.Tech_CostBenefit.benefit_maint == 0 && tech.Tech_CostBenefit.benefit_tools == 0 && tech.Tech_CostBenefit.benefit_tot == 0)) {
+//                                        b.sep();
+//                                }
+//
+//                                if (tech.Tech_CostBenefit.benefit_maint != 0) {
+//                                        b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(tech.Tech_CostBenefit.benefit_maint * 10) / 10, 1).color(GCOLOR.T().IBAD));
+//                                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Maintenance costs per production worker"));
+//                                        b.NL();
+//                                }
+//                                if (tech.Tech_CostBenefit.benefit_tools != 0) {
+//                                        b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(tech.Tech_CostBenefit.benefit_tools * 10) / 10, 1).color(GCOLOR.T().IBAD));
+//                                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Tool costs per production worker"));
+//                                        b.NL();
+//                                }
+//                                if (tech.Tech_CostBenefit.benefit_tot != 0) {
+//                                        b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(tech.Tech_CostBenefit.benefit_tot * 10) / 10, 1).color(GCOLOR.T().IBAD));
+//                                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Total upkeep costs per production worker"));
+//                                        b.NL();
+//                                }
+//                                if (!(tech.Tech_CostBenefit.benefit_maint == 0 && tech.Tech_CostBenefit.benefit_tools == 0 && tech.Tech_CostBenefit.benefit_tot == 0)) {
+//                                        b.NL();
+//                                }
+//                        }
                 }
                 if (KEYS.MAIN().UNDO.isPressed()) {
 
 
 
-                        if (!(sum_d(cost_maint) == 0 && sum_d(cost_tools) == 0 && sum_d(cost_inputs) == 0 && cost_tot == 0)) {
-                                b.sep();
-                        }
-                        if (sum_d(cost_maint) != 0) {// If sum of employment array isn't 0, maint/emp sums to 1 decimal or display 0
-                                b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) (sum_d(know_emp)!=0 ? Math.ceil(sum_d(cost_maint)/sum_d(know_emp) * 10)  / 10 : 0), 1).color(GCOLOR.T().IBAD));
-                                b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Maintenance costs per knowledge worker"));
-                                b.NL();
-                        }
-                        if (sum_d(cost_tools) != 0) {
-                                b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(sum_d(cost_tools) * 10) / 10, 1).color(GCOLOR.T().IBAD));
-                                b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Tool costs per knowledge worker"));
-                                b.NL();
-                        }
-                        if (sum_d(cost_inputs) != 0) {
-                                b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(sum_d(cost_inputs) * 10) / 10, 1).color(GCOLOR.T().IBAD));
-                                b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Input costs per knowledge worker (paper)"));
-                                b.NL();
-                        }
-                        if (cost_tot != 0) {
-                                b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(cost_tot * 10) / 10, 1).color(GCOLOR.T().IBAD));
-                                b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Average knowledge worker costs"));
-                                b.NL();
-                        }
+//                        if (!(sum_d(cost_maint) == 0 && sum_d(cost_tools) == 0 && sum_d(cost_inputs) == 0 && cost_tot == 0)) {
+//                                b.sep();
+//                        }
+//                        if (sum_d(cost_maint) != 0) {// If sum of employment array isn't 0, maint/emp sums to 1 decimal or display 0
+//                                b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) (sum_d(know_emp)!=0 ? Math.ceil(sum_d(cost_maint)/sum_d(know_emp) * 10)  / 10 : 0), 1).color(GCOLOR.T().IBAD));
+//                                b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Maintenance costs per knowledge worker"));
+//                                b.NL();
+//                        }
+//                        if (sum_d(cost_tools) != 0) {
+//                                b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(sum_d(cost_tools) * 10) / 10, 1).color(GCOLOR.T().IBAD));
+//                                b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Tool costs per knowledge worker"));
+//                                b.NL();
+//                        }
+//                        if (sum_d(cost_inputs) != 0) {
+//                                b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(sum_d(cost_inputs) * 10) / 10, 1).color(GCOLOR.T().IBAD));
+//                                b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Input costs per knowledge worker (paper)"));
+//                                b.NL();
+//                        }
+//                        if (cost_tot != 0) {
+//                                b.add(GFORMAT.f(new GText(UI.FONT().S, 0), (double) Math.ceil(cost_tot * 10) / 10, 1).color(GCOLOR.T().IBAD));
+//                                b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Average knowledge worker costs"));
+//                                b.NL();
+//                        }
                         if (!(sum_d(cost_maint) == 0 && sum_d(cost_tools) == 0 && sum_d(cost_inputs) == 0 && cost_tot == 0)) {
                                 b.NL();
                         }
@@ -258,13 +287,9 @@ public class Node_Extra{
         }
         public double tech_divisor_presentation(TECH tech, String what, double denari_costs, BoostSpec bb, GBox b) {
                 double tech_benefit = next_tech_benefit(bb); // % of maintenance you'll still have, e.g. 20% reduction from current tech level
-                b.sep();
-                if (Objects.equals(what, "spoilage")){
-                        b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Note: Spoilage estimate excludes floor spoilage which gets no benefit from tech"));
-                        b.NL();
-                }
-                if (KEYS.MAIN().UNDO.isPressed()) {
 
+                if (KEYS.MAIN().UNDO.isPressed()) {
+                        b.sep();
                         b.add(GFORMAT.f(new GText(UI.FONT().S, 0), 1/( 1+ FACTIONS.player().tech.level(tech) * bb.booster.to() ) ) );
                         b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "%"));   b.tab(2);
                         b.add(GFORMAT.text(new GText(UI.FONT().S, 0), "Current percent from this tech"));

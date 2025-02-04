@@ -36,7 +36,7 @@ import static settlement.main.SETT.*;
 ///#!#! This calculates the benefits of each tech's bonuses
 public class CostBenefit {
 
-        double CUR_TIME = -1;
+        public double CUR_TIME = -1;
         // Old Variables for reference
         public static double cost_tot = 0; 	// total costs (tools + maint atm) per person
 
@@ -93,18 +93,24 @@ public class CostBenefit {
                 // Only run this if you haven't lately.
                 if (CUR_TIME == playedGame() && !( KEYS.MAIN().MOD.isPressed() )){return;}
                 CUR_TIME = playedGame();
-                Knowledge_Costs.costs();
-                booster_benefits(tech);
-                unlock_benefits(tech);
+
+                // Reset variables before rerunning the analysis:
+                benefits = 0;
+                benefit_maint = 0;
+                benefit_tools = 0;
+                costs = 0;
+                cost_tot = 0;
+
+                // Run the various functions for cost benefit analysis
+                Knowledge_Costs.costs();  // Determining cost of tech
+                booster_benefits(tech);   // Production bonus tech
+                unlock_benefits(tech);    // Upgrade unlock tech
+                booster_tools(tech);      // Tool unlock tech
 
                 // Calculate the total costs
-                int j = 0;
-                double worker_cost   = 0;
-                double material_cost = 0;
                 for (TechCost c : tech.costs) {
-                        costs   += c.amount / know_worker[j];
-                        cost_tot += cost_inputs[j];
-                        j += 1;
+                        costs   += c.amount / know_worker[c.cu.index];
+                        cost_tot += cost_inputs[c.cu.index];
                 }
 
         }
@@ -112,8 +118,6 @@ public class CostBenefit {
 
         void booster_benefits(TECH tech)
         {
-
-
                 // Adds up the boost benefits for every boost in the tech, by industry, by room, per person.
                 benefits = 0; // reset benefit upon new tech
                 benefit_maint = 0;
@@ -198,7 +202,6 @@ public class CostBenefit {
         }
         void unlock_benefits(TECH tech)
         { // UNLOCKING UPGRADES
-
 
                 // Adds up the boost benefits for every boost in the tech, by industry, by room, per person.
                 double benefit_maint_total = 0;
@@ -287,7 +290,71 @@ public class CostBenefit {
                 if (benefit_emp_total >0) { benefit_maint_before = benefit_maint_total / benefit_emp_total; }
                 if (benefit_emp_total >0) { benefit_maint_upgrade = benefit_maint_upgrade_total / benefit_emp_total; }
         }
+        void booster_tools(TECH tech)
+        {
 
+                // Adds up the boost benefits for every boost in the tech, by industry, by room, per person.
+                double benefit_emp_total = 0;
+                double extra_tools = 0;
+                for (BoostSpec b : tech.boosters.all()) { // For all boosts of this tech,
+
+                        for (RoomBlueprint h : ROOMS().all()) { // For each type of room blueprint    Note: We need SETT.ROOMS() to find the RoomInstance bonuses
+                                if (  !(h instanceof RoomBlueprintIns)  ) { continue; } // Industries only
+
+                                for (RoomInstance r : ((RoomBlueprintIns<?>) h).all()) { // For each workshop in the industry
+
+                                        if (r.employees() == null || !(r instanceof ROOM_PRODUCER)) { continue; } // That has employees and produces goods
+
+                                        Industry ind = ((ROOM_PRODUCER) r).industry();  // Industry of the workshop
+                                        Boostable bonus = ind.bonus(); // The boosts of the industry
+
+                                        if (!(Objects.equals(b.boostable.cat.name, "Equipment"))){ continue; }
+                                        if (bonus == null || !Objects.equals((b.boostable.key).substring(17), h.key())) { continue; } // Boost exists in industry and matches the tech
+
+
+                                        // BOOSTS BENEFITS
+                                        double add = 0;
+                                        int tot = 0;
+                                        double tool_additive = 0;
+                                        for (Humanoid person : r.employees().employees()) { // for each person working
+                                                tot++; //adding up the number of employees
+                                                if (STATS.WORK().EMPLOYED.get(person) == r) { //IDK if this is needed, copied from hoverBoosts function
+                                                        for (Booster s : bonus.all()) { // look at all boosts an industry has
+                                                                if (!s.isMul) { // add up the non-multiplier bonuses
+                                                                        if (Objects.equals(s.info.name,"Tools")){ tool_additive = s.to(); }
+                                                                        add += s.get(person.indu());
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                        add /= tot; // add is the total additive bonuses.
+                                        if(  tot * b.booster.to() / (1+add) > 0  ) {
+                                                for (RoomEquip w : r.blueprint().employment().tools()) {
+                                                        // b.booster.to() = number of tools gained from the boost
+                                                        // w.target(r.blueprintI().employment()).max() = number of tools max
+                                                        // tool_additive =  benefit of tools, guessing 1 to 2, but pulled from the boost check above
+                                                        benefits += tot * (tool_additive * b.booster.to() / w.target(r.blueprintI().employment()).max()) / (1 + add);//Add the technology's benefit of each workshop
+                                                }
+                                        }
+
+                                        // TOOLS COSTS (before)
+                                        RoomEmploymentSimple ee = r.blueprint().employment();
+                                        RoomEmploymentIns e = r.employees();
+
+                                        for (RoomEquip w : ee.tools()) {
+                                                double n = w.degradePerDay * e.tools(w);
+                                                double sellFor = FACTIONS.player().trade.pricesBuy.get(w.resource);
+                                                benefit_tools -= n * sellFor;
+
+                                        }
+                                        benefit_emp_total += r.employees().employed(); // Employee count used for tools and maintenance
+
+                                }
+                        }
+                }
+                if (benefit_emp_total >0) { benefit_tools += extra_tools / benefit_emp_total; }
+
+        }
         public static double resource_use(String Source) {
                 double tot = 0;
                 for (RESOURCE res : RESOURCES.ALL()) {

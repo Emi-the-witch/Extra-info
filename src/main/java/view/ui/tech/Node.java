@@ -362,6 +362,8 @@ final class Node extends ClickableAbs {
 			}
 		}
 		/////////////////////////////////////#!#
+		// Reset game time clock if you push shift
+		if (KEYS.MAIN().UNDO.isPressed()){ tech.Tech_CostBenefit.CUR_TIME = -1; }
 		tech.Tech_CostBenefit.update(tech); // #!# Update tech's Cost Benefits
 		tech.Extra.output(tech, b);
 		/////////////////////////////////////#!#
