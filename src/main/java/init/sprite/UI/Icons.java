@@ -469,9 +469,6 @@ public class Icons{
 		public final IconS drop = get();
 		public final IconS star = get();
 		public final IconS ship = get();
-
-
-
 		public final IconS[] chevrons = new IconS[]{
 			get(),
 			get(),
@@ -502,14 +499,26 @@ public class Icons{
 		public final IconS temple = get();
 		public final IconS book = get();
 		public final IconS plus2 = get();
+		public final IconS plusBig = get();
 
-		//#!# Added Icons
-		public final IconS custom1 = get();
-		public final IconS custom2 = get();
-		public final IconS custom3 = get();
-		public final IconS custom4 = get();
-		//#!#
+		/////////////////////////////////////////////////////////////////////
+		int j = 0;
+		public final IconS c_minus = get_custom();
+		public final IconS c_plus = get_custom();
+		public final IconS custom3 = get_custom();
+		public final IconS custom4 = get_custom();
 
+		public final IconS custom5 = get_custom();
+		public final IconS custom6 = get_custom();
+		public final IconS custom7 = get_custom();
+		public final IconS custom8 = get_custom();
+
+		private IconS get_custom() throws IOException {
+			j++;
+			return new IconS(super.get("_CUSTOMICONS", j-1));
+		}
+
+		//////////////////////////////////////////////////////////////////////
 		public IconS chevron(DIR d) {
 			return chevrons[d.orthoID()];
 		}
@@ -630,14 +639,18 @@ public class Icons{
 		public final Icon home = get2();
 		public final Icon demolish = get2();
 
-		//#!# Added Icons
-		public final Icon new1 = get2();
-		public final Icon new2 = get2();
-		public final Icon new3 = get2();
-		public final Icon plus = get2();
-		public final Icon minus = get2();
-		public final Icon maint = get2();
-		//#!#
+/////////////////////////////////////////////////////////////////////
+		
+		int j = 0;
+		public final Icon plus = get_custom();
+		public final Icon minus = get_custom();
+		public final Icon maint = get_custom();
+		private Icon get_custom() throws IOException {
+			j++;
+			return get("_CustomIcons", j-1);
+		}
+
+//////////////////////////////////////////////////////////////////////
 
 		private Icon get() throws IOException {
 			int k = i;
@@ -658,5 +671,4 @@ public class Icons{
 		}
 
 	}
-
 }

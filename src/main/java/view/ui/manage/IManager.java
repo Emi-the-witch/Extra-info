@@ -329,7 +329,7 @@ public final class IManager {
                 }
             }
         });
-        bAdd(s, i++, VIEW.UI().tech, UI.icons().s.custom4, new GStat() {
+        bAdd(s, i++, VIEW.UI().tech, UI.icons().s.custom8, new GStat() {
 
             @Override
             public void update(GText text) {
@@ -368,8 +368,8 @@ public final class IManager {
             bAdd2(ss, k++, recipes, UI.icons().s.money, null);
             bAdd2(ss, k++, values, UI.icons().s.money, null);
 
-            bAdd2(ss, k++, all_expenses, UI.icons().s.custom1, null);
-            bAdd2(ss, k++, all_production, UI.icons().s.custom2, null);
+            bAdd2(ss, k++, all_expenses, UI.icons().s.c_minus, null);
+            bAdd2(ss, k++, all_production, UI.icons().s.c_plus, null);
 
             bAdd2(ss, k++, VIEW.UI().level, UI.icons().s.arrowUp, null);
             bAdd2(ss, k++, VIEW.UI().profile, UI.icons().s.menu, null);
