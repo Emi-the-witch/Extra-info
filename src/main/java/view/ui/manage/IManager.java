@@ -329,17 +329,19 @@ public final class IManager {
                 }
             }
         });
-        bAdd(s, i++, VIEW.UI().tech, UI.c_icons().s.custom8, new GStat() {
+        bAdd(s, i++, VIEW.UI().tech, UI.icons().s.clock, new GStat() {
 
             @Override
             public void update(GText text) {
-                int am;
-                int index=0;
-                for (TechCurr c : GAME.player().tech.currs()) {
-                    index+=1;
-                    am = c.available();
-                    if (index ==3){GFORMAT.i(text, am);}
-                }
+
+//                int am;
+//                int index=0;
+//                for (TechCurr c : GAME.player().tech.currs()) {
+//                    index+=1;
+//                    am = c.available();
+//                    if (index ==3){GFORMAT.i(text, am);}
+//                }
+                GFORMAT.i(text,(long) game.GameSpeed.actualSpeed);
             }
         });
 
