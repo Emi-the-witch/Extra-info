@@ -3,7 +3,6 @@ package view.ui.goods;
 import game.faction.FACTIONS;
 import init.resources.RESOURCE;
 import init.resources.RESOURCES;
-import init.sprite.SPRITES;
 import init.sprite.UI.UI;
 import settlement.main.SETT;
 import settlement.maintenance.ROOM_DEGRADER;
@@ -240,7 +239,7 @@ public final class UIMaintenance extends IFullView {
 static KeyMap<ResData> building_totals = new KeyMap<ResData>();
         //Constructor
         public UIMaintenance() {
-                super(¤¤Name, SPRITES.icons().l.maint);
+                super(¤¤Name, UI.c_icons().l.maint);
 
                 for (RoomBlueprint h : ROOMS().all()){ // For each type of room blueprint
                         building_totals.putReplace(h.key(), new ResData());

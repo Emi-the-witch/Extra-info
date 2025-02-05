@@ -24,7 +24,7 @@ public final class UIIndustries extends IFullView {
 
         private static CharSequence ¤¤Name = "Industries";
         public UIIndustries() {
-                super(¤¤Name, SPRITES.icons().l.coin);
+                super(¤¤Name, UI.icons().l.coin);
         }
 
 

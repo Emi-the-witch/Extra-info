@@ -41,8 +41,6 @@ import view.ui.goods.UIProduction;
 import view.ui.goods.UIRecipes;
 import view.ui.goods.UIValues;
 
-import static com.codedisaster.steamworks.SteamRemoteStorage.WorkshopFileType.Game;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///#!# Updates the front facing UI to add 5 buttons for Expenses, Production, Recipes, Values, and Maintenance
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,6 +52,8 @@ public final class IManager {
     private final UIMaintenance all_maintenance;
     private final UIExpenses all_expenses;
     private final UIProduction all_production;
+
+
     ////////////////////////////
     public static final int TOP_HEIGHT = 48;
 
@@ -329,7 +329,7 @@ public final class IManager {
                 }
             }
         });
-        bAdd(s, i++, VIEW.UI().tech, UI.icons().s.custom8, new GStat() {
+        bAdd(s, i++, VIEW.UI().tech, UI.c_icons().s.custom8, new GStat() {
 
             @Override
             public void update(GText text) {
@@ -368,8 +368,8 @@ public final class IManager {
             bAdd2(ss, k++, recipes, UI.icons().s.money, null);
             bAdd2(ss, k++, values, UI.icons().s.money, null);
 
-            bAdd2(ss, k++, all_expenses, UI.icons().s.c_minus, null);
-            bAdd2(ss, k++, all_production, UI.icons().s.c_plus, null);
+            bAdd2(ss, k++, all_expenses, UI.c_icons().s.c_minus, null);
+            bAdd2(ss, k++, all_production, UI.c_icons().s.c_plus, null);
 
             bAdd2(ss, k++, VIEW.UI().level, UI.icons().s.arrowUp, null);
             bAdd2(ss, k++, VIEW.UI().profile, UI.icons().s.menu, null);

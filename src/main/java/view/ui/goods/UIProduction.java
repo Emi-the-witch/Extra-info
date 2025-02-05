@@ -3,7 +3,6 @@ package view.ui.goods;
 import game.faction.FACTIONS;
 import init.resources.RESOURCE;
 import init.resources.RESOURCES;
-import init.sprite.SPRITES;
 import init.sprite.UI.UI;
 import settlement.main.SETT;
 import settlement.room.industry.module.RoomProduction;
@@ -25,7 +24,7 @@ public final class UIProduction extends IFullView {
         static double total_value = 0;
         private static CharSequence ¤¤Name = "Production";
         public UIProduction() {
-                super(¤¤Name, SPRITES.icons().l.plus);
+                super(¤¤Name, UI.c_icons().l.plus);
         }
 
 
